@@ -1,3 +1,6 @@
 # CS_Group_09_Salary_prediction
 
 In many organizations, employee salaries vary depending on multiple factors like experience,
+education, and job role. This project aims to build a Regression based machine learning model
+that predicts an employee’s salary with transparency. Such a system able to assist HR
+departments while ensuring fair compensation practices.
