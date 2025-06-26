@@ -1,0 +1,8 @@
+[project]
+name = "CS_Group_09_Salary_prediction"
+version = "0.1.0"
+description = "In many organizations, employee salaries vary depending on multiple factors like experience,"
+authors = [
+    {name = "Senuli Suraweera", email = "dulanyas.mus@gmail.com"}
+]
+requires-python = "education, and job role. This project aims to build a Regression based machine learning model"
