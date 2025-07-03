@@ -1,0 +1,24 @@
+{
+    "name": "Salary Prediction Dev Environment",
+    "build": {
+        "dockerfile": "../Dockerfile"
+    },
+    "features": {
+        "ghcr.io/devcontainers/features/git:1": {},
+        "ghcr.io/devcontainers/features/github-cli:1": {}
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.python",
+                "ms-toolsai.jupyter"
+            ],
+            "settings": {
+                "python.defaultInterpreterPath": "/opt/conda/envs/ml-env/bin/python",
+                "python.linting.enabled": true,
+                "editor.formatOnSave": true
+            }
+        }
+    },
+    "postCreateCommand": "pip install --user -r requirements.txt"
+}
