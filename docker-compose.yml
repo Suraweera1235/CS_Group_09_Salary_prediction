@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  salary-prediction:
+    build: .
+    container_name: salary-prediction-app
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    environment:
+      - PYTHONPATH=/app
+      - PATH=/opt/conda/envs/ml-env/bin:$PATH  # if using conda
+    command: conda run -n ml-env python src/train.py  # optional explicit use
+
+  jupyter:
+    build: .
+    container_name: salary-prediction-jupyter
+    ports:
+      - "8888:8888"
+    volumes:
+      - .:/app
+    environment:
+      - PYTHONPATH=/app
+      - PATH=/opt/conda/envs/ml-env/bin:$PATH  # if using conda
+    command: >
+      conda run -n ml-env jupyter notebook
+      --ip=0.0.0.0 --port=8888 --no-browser --allow-root
+      --NotebookApp.token='' --NotebookApp.password=''
+
