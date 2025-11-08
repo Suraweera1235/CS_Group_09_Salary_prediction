@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 # Model analysis — Random Forest (short & actionable)
 ## Dataset Overview
 - **Original rows:** 6,698  
@@ -40,3 +40,4 @@
 
 ## Conclusion
 The Random Forest model demonstrates strong predictive capability, with R² > 0.88 and low average errors. It can be reliably used for salary estimation for similar employee profiles.
+
