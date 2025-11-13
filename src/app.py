@@ -50,6 +50,15 @@ def compute_features(input_vals, mappings=None):
         'Job Title': input_vals.get('Job Title', '')
     }
     return pd.DataFrame([row])
+def clean_text(text):
+    if isinstance(text, str):
+        text = text.strip().lower()
+        text = text.replace("’", "'")
+        text = text.replace(" degree", "")  # Remove word 'degree'
+        text = text.replace("bachelors", "bachelor's")
+        text = text.replace("masters", "master's")
+        text = text.replace("phd", "phd")
+    return text
 
 # ----------------- Streamlit App -----------------
 def main():
@@ -57,7 +66,9 @@ def main():
     st.markdown("Enter feature values in the sidebar and select a model to predict Salary.")
 
     df = load_dataset()
+    df['Education Level'] = df['Education Level'].apply(clean_text)
     mappings = build_mappings(df)
+
 
     # ----------------- Sidebar -----------------
     st.sidebar.header('Model selection')
