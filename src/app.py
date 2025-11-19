@@ -3,7 +3,7 @@ import joblib
 import pandas as pd
 import numpy as np
 import streamlit as st
-from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sklearn.preprocessing import OneHotEncoder, StandardScaler, LabelEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.ensemble import RandomForestRegressor
@@ -27,6 +27,29 @@ def build_mappings(df):
     # Gender options
     mappings['genders'] = sorted(df['Gender'].dropna().unique().tolist())
     return mappings
+
+
+@st.cache_data
+def build_label_mappings(df, categorical_cols=None):
+    """Build mapping dicts similar to LabelEncoder for each categorical column.
+    Returns a dict mapping column -> {category: int} and a dict of mode int values.
+    """
+    if categorical_cols is None:
+        categorical_cols = ['Gender', 'Education Level', 'Job Title']
+    maps = {}
+    modes = {}
+    for col in categorical_cols:
+        # get unique classes in the same deterministic order LabelEncoder would (np.unique -> sorted)
+        classes = list(np.unique(df[col].dropna().astype(str).values))
+        mapping = {c: i for i, c in enumerate(classes)}
+        maps[col] = mapping
+        # compute mode; if mode not in mapping (unlikely) fall back to first class
+        try:
+            mode_val = df[col].mode().iloc[0]
+            modes[col] = mapping.get(str(mode_val), 0)
+        except Exception:
+            modes[col] = 0
+    return maps, modes
 
 # ----------------- Model loading -----------------
 def list_models():
@@ -68,6 +91,8 @@ def main():
     df = load_dataset()
     df['Education Level'] = df['Education Level'].apply(clean_text)
     mappings = build_mappings(df)
+    # Build label-like mappings so we can transform categorical inputs to the numeric codes
+    label_maps, label_modes = build_label_mappings(df)
 
 
     # ----------------- Sidebar -----------------
@@ -129,11 +154,31 @@ def main():
 
         X = compute_features(input_vals, mappings)
 
+        # Encode categorical columns using mappings built from the training CSV so the
+        # feature names and numeric encodings match what the saved model expects.
+        for col in ['Gender', 'Education Level', 'Job Title']:
+            val = str(X.at[0, col]) if pd.notna(X.at[0, col]) else ''
+            mapping = label_maps.get(col, {})
+            mode_code = label_modes.get(col, 0)
+            # map to code; if unseen category, use mode_code fallback
+            X.at[0, col] = mapping.get(val, mode_code)
+
+        # ensure numeric dtypes for all feature columns
+        for c in X.columns:
+            if c in ['Gender', 'Education Level', 'Job Title']:
+                X[c] = X[c].astype(int)
+            else:
+                X[c] = pd.to_numeric(X[c], errors='coerce').fillna(0.0)
+
+        # Ensure column order matches training notebook: Age, Gender, Education Level, Job Title, Years of Experience
+        feature_order = ['Age', 'Gender', 'Education Level', 'Job Title', 'Years of Experience']
+        X = X[feature_order]
+
         try:
             pred = model.predict(X)[0]
-        except Exception:
-            # fallback: pass only numeric columns
-            pred = model.predict(X.select_dtypes(include=[np.number]))[0]
+        except Exception as e:
+            st.error(f"Prediction failed: {e}")
+            return
 
         st.success(f'Predicted Salary: LKR {pred:,.2f}')
         st.subheader('Inputs used')
