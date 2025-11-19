@@ -18,15 +18,23 @@ def load_dataset():
 @st.cache_data
 def build_mappings(df):
     mappings = {}
+    
     # Job Title encoding
     mappings['job_title_mean'] = df.groupby('Job Title')['Salary'].mean().to_dict()
     mappings['job_title_global_mean'] = df['Salary'].mean()
+    
     # Education ordinal mapping
     edu_means = df.groupby('Education Level')['Salary'].mean().sort_values()
     mappings['education_map'] = {k: i for i, k in enumerate(edu_means.index.tolist())}
-    # Gender options
-    mappings['genders'] = sorted(df['Gender'].dropna().unique().tolist())
+    
+    # Gender options (keep only Male, Female)
+    allowed_genders = ["Male", "Female"]
+    df = df[df['Gender'].isin(allowed_genders)]
+    
+    mappings['genders'] = sorted(df['Gender'].unique().tolist())
+    
     return mappings
+
 
 # ----------------- Model loading -----------------
 def list_models():
@@ -135,7 +143,7 @@ def main():
             # fallback: pass only numeric columns
             pred = model.predict(X.select_dtypes(include=[np.number]))[0]
 
-        st.success(f'Predicted Salary: LKR {pred:,.2f}')
+        st.success(f'Predicted Salary: INR {pred:,.2f}')
         st.subheader('Inputs used')
         st.table(X.T)
 
